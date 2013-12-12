@@ -3,8 +3,8 @@ using System.IO;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System.Text;
 using System.Web;
 using System.Net;
 using System.Xml.Linq;
@@ -99,32 +99,5 @@ namespace processTorrents
             }
             return output;
         }
-    }
-
-    class LogFile
-    {
-        private StreamWriter _logFile;
-
-        public LogFile()
-        {
-            _logFile = new StreamWriter("processTorrents.log", true);
-        }
-
-        public void Write(string message)
-        {
-            _logFile.WriteLine(DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss") + " : " + message);
-        }
-
-        public void Close()
-        {
-            _logFile.Close();
-        }
-    }
-
-    class Constants
-    {
-        public const string APIurl = "http://localhost:8088/gui/";
-        public const string UserName = "karel";
-        public const string PassWord = "enadkphn";
-    }
+    }      
 }
