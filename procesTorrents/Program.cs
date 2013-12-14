@@ -17,10 +17,11 @@ namespace processTorrents
         {
             LogFile log = new LogFile();
             uTorrentAPI api = new uTorrentAPI(log);
-            string torrentHash = "2A0C69B206B3C69118F2957153A03B208114EC2C";//test only change to args[0]
+            string torrentHash = "46749E4777E7B14077B8E364E00D669BF401F390";//test only change to args[0]
 
             if (!string.IsNullOrEmpty(torrentHash))
             {
+                api.stopTorrent(torrentHash);
                 var files = api.getFiles(torrentHash);
 
 
@@ -37,66 +38,47 @@ namespace processTorrents
 
     class uTorrentAPI
     {
-        private LogFile _log;
+        private static LogFile _log;
+        private static string _token;
+        private static RestCommunicator rest;
 
         public uTorrentAPI(LogFile log)
         {
+            rest = new RestCommunicator(Constants.APIurl, "_utorrent");
+            rest.Authenticate(Constants.UserName, Constants.PassWord);
             _log = log;
+            _token = getToken();
+        }
+
+        public void stopTorrent(string hash)
+        {
+            NameValueCollection queryString = HttpUtility.ParseQueryString(string.Empty);
+            queryString["action"] = "stop";
+            queryString["hash"] = hash;
+            queryString["token"] = _token;
+
+            var response = rest.Send<string>("?" + queryString.ToString(), RestCommunicator.Method.Get);
         }
 
         public string getFiles(string hash)
         {
-            var files = "";
             NameValueCollection queryString = HttpUtility.ParseQueryString(string.Empty);
             queryString["action"] = "getfiles";
             queryString["hash"] = hash;
-            queryString["token"] = getToken(_log);
+            queryString["token"] = _token;
 
-            var requestURI = Constants.APIurl + "?" + queryString.ToString();
-
-
-
-            var req = (HttpWebRequest)WebRequest.Create(requestURI);
-            req.Method = "GET";
-            req.Credentials = new NetworkCredential(Constants.UserName, Constants.PassWord);
-
-            files = getOutput(req, _log);
+            var response = rest.Send<string>("?" + queryString.ToString(), RestCommunicator.Method.Get);
+            var files = response.Response;
 
             return files;
         }
 
-        private static string getToken(LogFile log)
+        private static string getToken()
         {
-            var req = (HttpWebRequest)WebRequest.Create(Constants.APIurl + "token.html");
-            req.Method = "GET";
-            req.Credentials = new NetworkCredential(Constants.UserName, Constants.PassWord);
-            req.ContentLength = 0;
+            var response = rest.Send<string>("token.html", RestCommunicator.Method.Get);
+            var xOutput = XDocument.Parse(response.Response);
+            var output = xOutput.Descendants("div").First().Value;
 
-            var output = getOutput(req, log);
-            var xOutput = XDocument.Parse(output);
-            output = xOutput.Descendants("div").First().Value;
-
-            return output;
-        }
-
-        private static string getOutput(HttpWebRequest req, LogFile log)
-        {
-            string output = "";
-            try
-            {
-                using (var response = req.GetResponse())
-                {
-                    using (var stream = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding(1252)))
-                    {
-                        output = stream.ReadToEnd();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                log.Write("something went wrong while reading output");
-                log.Write(ex.Message);
-            }
             return output;
         }
     }      
