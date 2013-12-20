@@ -11,7 +11,6 @@ namespace processTorrents
         public const string APIurl = "http://localhost:8088/gui/";
         public const string UserName = "karel";
         public const string PassWord = "enadkphn";
-        //public const string[] extentions = { ".mkv", ".avi", ".divx", ".xvid", ".mp4", ".m4v", ".mov", ".mpg", ".mpeg" };
-        //public const string[] ignore = { "sample" };
+        public const string basedir = @"G:\New Shit";
     }
 }
